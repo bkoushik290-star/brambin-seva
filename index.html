@@ -1,0 +1,882 @@
+import { useState } from "react";
+
+const theme = {
+  saffron: "#E65C00",
+  saffronLight: "#FF8C42",
+  saffronDark: "#B34400",
+  gold: "#F9A825",
+  cream: "#FFF8F0",
+  deepRed: "#8B1A1A",
+  ink: "#1A0A00",
+  inkLight: "#3D2B1F",
+  ash: "#F5EDE4",
+  ashDark: "#E8D8C8",
+  white: "#FFFFFF",
+  green: "#2E7D32",
+  greenLight: "#E8F5E9",
+  blue: "#1565C0",
+  blueLight: "#E3F2FD",
+};
+
+const globalStyles = `
+  @import url('https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Sanskrit:ital@0;1&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: ${theme.cream}; }
+
+  .app-root {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #FFF8F0 0%, #FFE8CC 40%, #FFF3E0 100%);
+  }
+
+  .tab-bar {
+    display: flex;
+    background: ${theme.ink};
+    border-radius: 16px;
+    padding: 4px;
+    gap: 4px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.3px;
+  }
+  .tab-btn.active {
+    background: ${theme.saffron};
+    color: white;
+    box-shadow: 0 4px 12px rgba(230,92,0,0.4);
+  }
+
+  .card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(26,10,0,0.08);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge-gold { background: #FFF3CD; color: #8B6914; }
+  .badge-green { background: ${theme.greenLight}; color: ${theme.green}; }
+  .badge-blue { background: ${theme.blueLight}; color: ${theme.blue}; }
+  .badge-saffron { background: #FFF0E6; color: ${theme.saffron}; }
+  .badge-red { background: #FFEBEE; color: #C62828; }
+
+  .avatar-ring {
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(135deg, ${theme.gold}, ${theme.saffron}, ${theme.deepRed});
+    display: inline-block;
+  }
+
+  .stars {
+    color: ${theme.gold};
+    font-size: 15px;
+    letter-spacing: 1px;
+  }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: ${theme.ink};
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: ${theme.ashDark};
+  }
+
+  .info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid ${theme.ash};
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .info-label { font-size: 11px; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-value { font-size: 14px; color: ${theme.inkLight}; font-weight: 500; }
+
+  .skill-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    background: ${theme.ash};
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: ${theme.inkLight};
+    border: 1px solid ${theme.ashDark};
+    transition: all 0.2s;
+  }
+  .skill-chip:hover { background: #FFF0E6; border-color: ${theme.saffron}; color: ${theme.saffron}; }
+
+  .stat-box {
+    text-align: center;
+    padding: 16px 12px;
+    background: ${theme.ash};
+    border-radius: 14px;
+    flex: 1;
+  }
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: ${theme.saffron};
+    line-height: 1;
+  }
+  .stat-label { font-size: 11px; color: #888; margin-top: 4px; font-weight: 500; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, ${theme.saffron}, ${theme.saffronDark});
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(230,92,0,0.3);
+    width: 100%;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(230,92,0,0.4); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    background: white;
+    color: ${theme.saffron};
+    border: 1.5px solid ${theme.saffron};
+    border-radius: 12px;
+    padding: 11px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .btn-secondary:hover { background: #FFF0E6; }
+
+  .review-card {
+    background: ${theme.ash};
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid ${theme.ash};
+  }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: ${theme.ash};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .progress-bar-bg { background: ${theme.ashDark}; border-radius: 999px; height: 6px; flex: 1; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, ${theme.saffron}, ${theme.gold}); transition: width 0.6s ease; }
+
+  .input-field {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid ${theme.ashDark};
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: ${theme.ink};
+    background: white;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-field:focus { border-color: ${theme.saffron}; }
+  .input-label { font-size: 12px; font-weight: 600; color: #666; margin-bottom: 4px; display: block; }
+
+  .header-banner {
+    height: 130px;
+    background: linear-gradient(135deg, ${theme.saffronDark} 0%, ${theme.saffron} 50%, ${theme.gold} 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .header-banner::before {
+    content: 'ॐ';
+    position: absolute;
+    font-family: 'Tiro Devanagari Sanskrit', serif;
+    font-size: 180px;
+    color: rgba(255,255,255,0.06);
+    right: -20px;
+    top: -30px;
+    line-height: 1;
+  }
+
+  .header-banner-user {
+    background: linear-gradient(135deg, #1565C0 0%, #1976D2 50%, #42A5F5 100%);
+  }
+  .header-banner-user::before {
+    content: '🪔';
+    font-size: 120px;
+    opacity: 0.08;
+  }
+
+  .cert-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: ${theme.ash};
+    border-radius: 12px;
+    margin-bottom: 8px;
+    border: 1px solid ${theme.ashDark};
+  }
+  .cert-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, ${theme.gold}, ${theme.saffron});
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+
+  .service-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    border: 1px solid ${theme.ashDark};
+    transition: all 0.2s;
+  }
+  .service-pill:hover { border-color: ${theme.saffron}; background: #FFF8F2; }
+
+  .booking-card {
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    border: 1px solid ${theme.ashDark};
+  }
+  .booking-header {
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: ${theme.ash};
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeInUp 0.35s ease forwards; }
+
+  .floating-om {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .floating-om span {
+    position: absolute;
+    font-family: 'Tiro Devanagari Sanskrit', serif;
+    color: rgba(230,92,0,0.04);
+    font-size: 200px;
+    user-select: none;
+  }
+`;
+
+// ─── DATA ────────────────────────────────────────────────────────────────────
+
+const purohitData = {
+  name: "পণ্ডিত রামকৃষ্ণ শাস্ত্রী",
+  nameEn: "Pt. Ramkrishna Shastri",
+  title: "বেদান্ত বিশারদ",
+  avatar: "👨‍🦳",
+  location: "কলকাতা, পশ্চিমবঙ্গ",
+  rating: 4.9,
+  totalReviews: 312,
+  experience: 28,
+  totalPujas: 2840,
+  specialization: "বৈদিক আচার",
+  languages: ["বাংলা", "সংস্কৃত", "হিন্দি"],
+  verified: true,
+  available: true,
+  dakshina: "₹১,৫০১ থেকে",
+  about: "আমি ২৮ বছর ধরে বৈদিক আচার-অনুষ্ঠান পরিচালনা করে আসছি। কাশী বিশ্বনাথ সংস্কৃত বিশ্ববিদ্যালয় থেকে স্নাতকোত্তর ডিগ্রি অর্জন করেছি। সকল বয়সের মানুষকে সহজ ভাষায় পূজার মাহাত্ম্য বুঝিয়ে দেওয়াই আমার লক্ষ্য।",
+  education: [
+    { degree: "বেদান্ত বিশারদ (M.A.)", institution: "কাশী বিশ্বনাথ সংস্কৃত বিশ্ববিদ্যালয়", year: "১৯৯৬" },
+    { degree: "জ্যোতিষ শাস্ত্র (B.A.)", institution: "নবদ্বীপ সংস্কৃত কলেজ", year: "১৯৯৩" },
+  ],
+  certifications: [
+    { name: "বৈদিক পুরোহিত সার্টিফিকেট", issuer: "রামকৃষ্ণ মিশন", year: "১৯৯৮", verified: true },
+    { name: "পঞ্চাঙ্গ বিশেষজ্ঞ", issuer: "বিশ্ব হিন্দু পরিষদ", year: "২০০৫", verified: true },
+  ],
+  skills: ["সত্যনারায়ণ পূজা", "বিবাহ", "শ্রাদ্ধ", "গৃহপ্রবেশ", "অন্নপ্রাশন", "নামকরণ", "উপনয়ন", "কালীপূজা", "দুর্গাপূজা", "গণেশ পূজা"],
+  services: [
+    { name: "সত্যনারায়ণ পূজা", duration: "২–৩ ঘণ্টা", price: "₹৮০১", icon: "🪔" },
+    { name: "বিবাহ অনুষ্ঠান", duration: "৪–৬ ঘণ্টা", price: "₹৮,০০০", icon: "💍" },
+    { name: "গৃহপ্রবেশ পূজা", duration: "২–৩ ঘণ্টা", price: "₹১,৫০১", icon: "🏠" },
+    { name: "অন্নপ্রাশন", duration: "১–২ ঘণ্টা", price: "₹৬০১", icon: "🍚" },
+  ],
+  reviews: [
+    { name: "সুমিতা দাস", rating: 5, text: "অসাধারণ অভিজ্ঞতা! পণ্ডিতজি খুব সুন্দরভাবে পূজা পরিচালনা করলেন এবং প্রতিটি মন্ত্রের অর্থ বুঝিয়ে দিলেন।", date: "৩ দিন আগে" },
+    { name: "রাজেশ কুণ্ডু", rating: 5, text: "ছেলের অন্নপ্রাশনে ডাকলাম। সময়মতো এলেন, সম্পূর্ণ আচার নিষ্ঠার সাথে করলেন। ধন্যবাদ।", date: "১ সপ্তাহ আগে" },
+    { name: "প্রিয়া সেন", rating: 4, text: "গৃহপ্রবেশে পূজা করলেন। সব কিছু সুন্দর হলো, তবে একটু দেরিতে এলেন।", date: "২ সপ্তাহ আগে" },
+  ],
+  stats: [
+    { num: "২৮", label: "বছরের অভিজ্ঞতা" },
+    { num: "২,৮৪০", label: "মোট পূজা" },
+    { num: "৪.৯★", label: "গড় রেটিং" },
+    { num: "৩১২", label: "রিভিউ" },
+  ],
+  ratingBreakdown: [
+    { stars: 5, pct: 85 }, { stars: 4, pct: 10 }, { stars: 3, pct: 3 },
+    { stars: 2, pct: 1 }, { stars: 1, pct: 1 },
+  ],
+};
+
+const userData = {
+  name: "অনিন্দিতা চক্রবর্তী",
+  nameEn: "Anindita Chakraborty",
+  avatar: "👩",
+  location: "সল্টলেক, কলকাতা",
+  phone: "+91 98765 43210",
+  email: "anindita.c@gmail.com",
+  memberSince: "মার্চ ২০২৪",
+  totalBookings: 7,
+  upcomingBookings: 1,
+  favouritePurohit: "পণ্ডিত রামকৃষ্ণ শাস্ত্রী",
+  preferences: ["বাংলা মন্ত্র", "সময়মতো আসা", "অনলাইন পেমেন্ট"],
+  bookings: [
+    { puja: "সত্যনারায়ণ পূজা", purohit: "পণ্ডিত রামকৃষ্ণ শাস্ত্রী", date: "১৫ জুন ২০২৫", time: "সকাল ১০টা", status: "upcoming", price: "₹৮০১", icon: "🪔" },
+    { puja: "গৃহপ্রবেশ পূজা", purohit: "পণ্ডিত সুব্রত মুখার্জি", date: "২ মার্চ ২০২৫", time: "সকাল ৯টা", status: "completed", price: "₹১,৫০১", icon: "🏠" },
+    { puja: "অন্নপ্রাশন", purohit: "পণ্ডিত রামকৃষ্ণ শাস্ত্রী", date: "১২ জানুয়ারি ২০২৫", time: "সকাল ১১টা", status: "completed", price: "₹৬০১", icon: "🍚" },
+    { puja: "সত্যনারায়ণ পূজা", purohit: "পণ্ডিত দীনেশ ত্রিবেদী", date: "৫ নভেম্বর ২০২৪", time: "বিকেল ৪টা", status: "completed", price: "₹৭০১", icon: "🪔" },
+    { puja: "কালীপূজা", purohit: "পণ্ডিত রামকৃষ্ণ শাস্ত্রী", date: "১ নভেম্বর ২০২৪", time: "রাত ১০টা", status: "cancelled", price: "₹১,২০১", icon: "🔱" },
+  ],
+  savedPurohits: [
+    { name: "পণ্ডিত রামকৃষ্ণ শাস্ত্রী", rating: 4.9, speciality: "বৈদিক আচার", avatar: "👨‍🦳" },
+    { name: "পণ্ডিত সুব্রত মুখার্জি", rating: 4.7, speciality: "তান্ত্রিক পূজা", avatar: "🧔" },
+  ],
+  stats: [
+    { num: "৭", label: "মোট বুকিং" },
+    { num: "₹৫,৮০৫", label: "মোট দক্ষিণা" },
+    { num: "২", label: "প্রিয় পুরোহিত" },
+    { num: "১৪", label: "মাসের সদস্য" },
+  ],
+};
+
+// ─── COMPONENTS ──────────────────────────────────────────────────────────────
+
+function StarRating({ rating, size = 14 }) {
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5;
+  return (
+    <span style={{ color: theme.gold, fontSize: size, letterSpacing: "1px" }}>
+      {"★".repeat(full)}{half ? "½" : ""}{"☆".repeat(5 - full - (half ? 1 : 0))}
+    </span>
+  );
+}
+
+function SectionTitle({ icon, title }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+      <span style={{ fontSize: 18 }}>{icon}</span>
+      <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 17, color: theme.ink, fontWeight: 400 }}>{title}</span>
+      <div style={{ flex: 1, height: 1, background: theme.ashDark, marginLeft: 4 }} />
+    </div>
+  );
+}
+
+function InfoRow({ icon, label, value }) {
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: `1px solid ${theme.ash}` }}>
+      <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
+      <div>
+        <div style={{ fontSize: 11, color: "#999", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</div>
+        <div style={{ fontSize: 14, color: theme.inkLight, fontWeight: 500, marginTop: 2 }}>{value}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PUROHIT PROFILE ─────────────────────────────────────────────────────────
+
+function PurohitProfile() {
+  const [activeTab, setActiveTab] = useState("about");
+  const tabs = [
+    { id: "about", label: "পরিচয়" },
+    { id: "services", label: "সেবা" },
+    { id: "reviews", label: "রিভিউ" },
+    { id: "certificates", label: "সার্টিফিকেট" },
+  ];
+
+  return (
+    <div className="fade-in">
+      {/* Header Banner */}
+      <div className="header-banner" style={{ borderRadius: "20px 20px 0 0", position: "relative" }}>
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 20px", background: "linear-gradient(to top, rgba(0,0,0,0.5), transparent)" }}>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 14 }}>
+            <div className="avatar-ring">
+              <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, #FFF3E0, #FFE0B2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>
+                {purohitData.avatar}
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: "white", lineHeight: 1.2 }}>{purohitData.name}</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>{purohitData.title}</div>
+            </div>
+            {purohitData.verified && (
+              <span className="badge badge-gold">✓ যাচাইকৃত</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Stats */}
+      <div style={{ background: "white", padding: "14px 16px", borderBottom: `1px solid ${theme.ash}` }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          {purohitData.stats.map((s, i) => (
+            <div key={i} className="stat-box">
+              <div className="stat-num" style={{ fontSize: 20 }}>{s.num}</div>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Availability & Quick Info */}
+      <div style={{ background: "white", padding: "12px 16px", display: "flex", gap: 8, flexWrap: "wrap", borderBottom: `1px solid ${theme.ash}` }}>
+        <span className="badge badge-green">🟢 এখন উপলব্ধ</span>
+        <span className="badge badge-saffron">📍 {purohitData.location}</span>
+        <span className="badge badge-blue">💰 {purohitData.dakshina}</span>
+        {purohitData.languages.map(l => (
+          <span key={l} className="badge" style={{ background: "#F3E5F5", color: "#6A1B9A" }}>🗣️ {l}</span>
+        ))}
+      </div>
+
+      {/* Action Buttons */}
+      <div style={{ background: "white", padding: "14px 16px", display: "flex", gap: 10, borderBottom: `1px solid ${theme.ash}` }}>
+        <button className="btn-primary" style={{ flex: 2 }}>📅 বুকিং করুন</button>
+        <button className="btn-secondary" style={{ flex: 1 }}>💬 বার্তা</button>
+        <button style={{ width: 46, height: 46, border: `1.5px solid ${theme.ashDark}`, borderRadius: 12, background: "white", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>❤️</button>
+      </div>
+
+      {/* Sub Tabs */}
+      <div style={{ background: "white", padding: "12px 16px", borderBottom: `1px solid ${theme.ash}` }}>
+        <div style={{ display: "flex", gap: 4, background: theme.ash, borderRadius: 12, padding: 4 }}>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
+              flex: 1, padding: "8px 4px", border: "none", borderRadius: 9, cursor: "pointer",
+              fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600, transition: "all 0.2s",
+              background: activeTab === t.id ? theme.saffron : "transparent",
+              color: activeTab === t.id ? "white" : "#888",
+              boxShadow: activeTab === t.id ? "0 2px 8px rgba(230,92,0,0.3)" : "none",
+            }}>{t.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      <div style={{ background: "white", padding: "16px" }} className="fade-in" key={activeTab}>
+
+        {activeTab === "about" && (
+          <div>
+            <SectionTitle icon="📖" title="পরিচিতি" />
+            <p style={{ fontSize: 14, color: theme.inkLight, lineHeight: 1.7, marginBottom: 20 }}>{purohitData.about}</p>
+
+            <SectionTitle icon="🎓" title="শিক্ষাগত যোগ্যতা" />
+            {purohitData.education.map((e, i) => (
+              <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", borderBottom: `1px solid ${theme.ash}` }}>
+                <div style={{ width: 40, height: 40, background: `linear-gradient(135deg, ${theme.gold}, ${theme.saffron})`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎓</div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: theme.ink }}>{e.degree}</div>
+                  <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>{e.institution} · {e.year}</div>
+                </div>
+              </div>
+            ))}
+
+            <div style={{ marginTop: 20 }} />
+            <SectionTitle icon="⚡" title="দক্ষতার ক্ষেত্র" />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {purohitData.skills.map(s => (
+                <span key={s} className="skill-chip">{s}</span>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 20 }} />
+            <InfoRow icon="📍" label="সার্ভিস এরিয়া" value="কলকাতা ও আশেপাশে ৩০ কিমি" />
+            <InfoRow icon="🗓️" label="সদস্যপদ শুরু" value="জানুয়ারি ২০২৩" />
+            <InfoRow icon="📞" label="যোগাযোগ" value="বুকিং-এর মাধ্যমে" />
+          </div>
+        )}
+
+        {activeTab === "services" && (
+          <div>
+            <SectionTitle icon="🪔" title="প্রদত্ত সেবাসমূহ" />
+            {purohitData.services.map((s, i) => (
+              <div key={i} className="service-pill">
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 42, height: 42, background: "#FFF3E0", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{s.icon}</div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: theme.ink }}>{s.name}</div>
+                    <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>⏱ {s.duration}</div>
+                  </div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: theme.saffron }}>{s.price}</div>
+                  <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>দক্ষিণা</div>
+                </div>
+              </div>
+            ))}
+            <div style={{ marginTop: 8, padding: 12, background: "#FFF3E0", borderRadius: 12, fontSize: 12, color: theme.saffronDark }}>
+              ℹ️ উল্লিখিত দক্ষিণা আনুমানিক। পূজার ধরন ও সামগ্রী অনুযায়ী পরিবর্তন হতে পারে।
+            </div>
+          </div>
+        )}
+
+        {activeTab === "reviews" && (
+          <div>
+            {/* Rating Summary */}
+            <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 20, padding: 16, background: theme.ash, borderRadius: 14 }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 48, color: theme.saffron, lineHeight: 1 }}>৪.৯</div>
+                <StarRating rating={4.9} size={16} />
+                <div style={{ fontSize: 11, color: "#888", marginTop: 4 }}>৩১২ রিভিউ</div>
+              </div>
+              <div style={{ flex: 1 }}>
+                {purohitData.ratingBreakdown.map(r => (
+                  <div key={r.stars} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                    <span style={{ fontSize: 11, color: "#888", width: 20, textAlign: "right" }}>{r.stars}★</span>
+                    <div className="progress-bar-bg"><div className="progress-bar-fill" style={{ width: `${r.pct}%` }} /></div>
+                    <span style={{ fontSize: 11, color: "#888", width: 26 }}>{r.pct}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <SectionTitle icon="💬" title="সাম্প্রতিক রিভিউ" />
+            {purohitData.reviews.map((r, i) => (
+              <div key={i} className="review-card">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <div style={{ width: 32, height: 32, background: `linear-gradient(135deg, ${theme.gold}, ${theme.saffron})`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>👤</div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13 }}>{r.name}</div>
+                      <StarRating rating={r.rating} size={12} />
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11, color: "#aaa" }}>{r.date}</span>
+                </div>
+                <p style={{ fontSize: 13, color: theme.inkLight, lineHeight: 1.6 }}>{r.text}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === "certificates" && (
+          <div>
+            <SectionTitle icon="📜" title="শিক্ষাগত সার্টিফিকেট" />
+            {purohitData.certifications.map((c, i) => (
+              <div key={i} className="cert-card">
+                <div className="cert-icon">📜</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: theme.ink }}>{c.name}</div>
+                  <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>{c.issuer} · {c.year}</div>
+                </div>
+                {c.verified && <span className="badge badge-green">✓ যাচাইকৃত</span>}
+              </div>
+            ))}
+            <div style={{ marginTop: 20, padding: 14, border: `2px dashed ${theme.ashDark}`, borderRadius: 14, textAlign: "center", color: "#aaa", fontSize: 13 }}>
+              <div style={{ fontSize: 28, marginBottom: 6 }}>📎</div>
+              <div>নতুন সার্টিফিকেট আপলোড করুন</div>
+              <div style={{ fontSize: 11, marginTop: 4 }}>PDF বা JPG (সর্বোচ্চ ৫ MB)</div>
+              <button style={{ marginTop: 10, padding: "8px 20px", background: theme.saffron, color: "white", border: "none", borderRadius: 8, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>ফাইল বেছে নিন</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── USER PROFILE ─────────────────────────────────────────────────────────────
+
+function UserProfile() {
+  const [activeTab, setActiveTab] = useState("bookings");
+  const tabs = [
+    { id: "bookings", label: "বুকিং" },
+    { id: "saved", label: "প্রিয়" },
+    { id: "settings", label: "সেটিং" },
+  ];
+
+  const statusConfig = {
+    upcoming: { label: "আসছে", color: theme.blue, bg: theme.blueLight, icon: "⏰" },
+    completed: { label: "সম্পন্ন", color: theme.green, bg: theme.greenLight, icon: "✅" },
+    cancelled: { label: "বাতিল", color: "#C62828", bg: "#FFEBEE", icon: "❌" },
+  };
+
+  return (
+    <div className="fade-in">
+      {/* Header */}
+      <div className="header-banner header-banner-user" style={{ borderRadius: "20px 20px 0 0" }}>
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 20px", background: "linear-gradient(to top, rgba(0,0,0,0.4), transparent)" }}>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 14 }}>
+            <div style={{ borderRadius: "50%", padding: 3, background: "linear-gradient(135deg, #90CAF9, #1565C0)", display: "inline-block" }}>
+              <div style={{ width: 68, height: 68, borderRadius: "50%", background: "linear-gradient(135deg, #E3F2FD, #BBDEFB)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34 }}>
+                {userData.avatar}
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: "white" }}>{userData.name}</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>📍 {userData.location}</div>
+            </div>
+            <span className="badge" style={{ background: "rgba(255,255,255,0.2)", color: "white", backdropFilter: "blur(4px)" }}>
+              🕉️ সক্রিয় সদস্য
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{ background: "white", padding: "14px 16px", borderBottom: `1px solid ${theme.ash}` }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          {userData.stats.map((s, i) => (
+            <div key={i} className="stat-box" style={{ background: i === 0 ? "#FFF0E6" : theme.ash }}>
+              <div className="stat-num" style={{ fontSize: 20, color: i === 0 ? theme.saffron : theme.ink }}>{s.num}</div>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Contact Info Strip */}
+      <div style={{ background: "white", padding: "10px 16px", borderBottom: `1px solid ${theme.ash}`, display: "flex", gap: 12 }}>
+        <span style={{ fontSize: 12, color: "#888" }}>📞 {userData.phone}</span>
+        <span style={{ fontSize: 12, color: "#888" }}>✉️ {userData.email}</span>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ background: "white", padding: "12px 16px", borderBottom: `1px solid ${theme.ash}` }}>
+        <div style={{ display: "flex", gap: 4, background: theme.ash, borderRadius: 12, padding: 4 }}>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
+              flex: 1, padding: "9px 4px", border: "none", borderRadius: 9, cursor: "pointer",
+              fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, transition: "all 0.2s",
+              background: activeTab === t.id ? "#1565C0" : "transparent",
+              color: activeTab === t.id ? "white" : "#888",
+              boxShadow: activeTab === t.id ? "0 2px 8px rgba(21,101,192,0.3)" : "none",
+            }}>{t.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      <div style={{ background: "white", padding: "16px" }} className="fade-in" key={activeTab}>
+
+        {activeTab === "bookings" && (
+          <div>
+            <SectionTitle icon="📅" title="বুকিং ইতিহাস" />
+            {userData.bookings.map((b, i) => {
+              const sc = statusConfig[b.status];
+              return (
+                <div key={i} className="booking-card">
+                  <div className="booking-header">
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 20 }}>{b.icon}</span>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: theme.ink }}>{b.puja}</div>
+                        <div style={{ fontSize: 11, color: "#888" }}>{b.purohit}</div>
+                      </div>
+                    </div>
+                    <span className="badge" style={{ background: sc.bg, color: sc.color }}>
+                      {sc.icon} {sc.label}
+                    </span>
+                  </div>
+                  <div style={{ padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ fontSize: 12, color: "#888" }}>
+                      <span>📆 {b.date}</span>
+                      <span style={{ marginLeft: 10 }}>🕐 {b.time}</span>
+                    </div>
+                    <div style={{ fontWeight: 700, color: theme.saffron, fontSize: 14 }}>{b.price}</div>
+                  </div>
+                  {b.status === "completed" && (
+                    <div style={{ padding: "0 14px 10px", display: "flex", gap: 8 }}>
+                      <button style={{ flex: 1, padding: "7px", background: "#FFF0E6", color: theme.saffron, border: `1px solid ${theme.saffron}`, borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>🔁 আবার বুক করুন</button>
+                      <button style={{ flex: 1, padding: "7px", background: "#F3E5F5", color: "#7B1FA2", border: "1px solid #CE93D8", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>⭐ রিভিউ দিন</button>
+                    </div>
+                  )}
+                  {b.status === "upcoming" && (
+                    <div style={{ padding: "0 14px 10px", display: "flex", gap: 8 }}>
+                      <button style={{ flex: 2, padding: "7px", background: theme.blueLight, color: theme.blue, border: `1px solid #90CAF9`, borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>📋 বিস্তারিত দেখুন</button>
+                      <button style={{ flex: 1, padding: "7px", background: "#FFEBEE", color: "#C62828", border: "1px solid #FFCDD2", borderRadius: 8, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>❌ বাতিল করুন</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {activeTab === "saved" && (
+          <div>
+            <SectionTitle icon="❤️" title="প্রিয় পুরোহিত" />
+            {userData.savedPurohits.map((p, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px", background: theme.ash, borderRadius: 14, marginBottom: 10 }}>
+                <div className="avatar-ring">
+                  <div style={{ width: 48, height: 48, borderRadius: "50%", background: "linear-gradient(135deg, #FFF3E0, #FFE0B2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>{p.avatar}</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: theme.ink }}>{p.name}</div>
+                  <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>{p.speciality}</div>
+                  <StarRating rating={p.rating} size={12} />
+                  <span style={{ fontSize: 11, color: "#888", marginLeft: 4 }}>{p.rating}</span>
+                </div>
+                <button className="btn-primary" style={{ width: "auto", padding: "8px 14px", fontSize: 12 }}>বুক করুন</button>
+              </div>
+            ))}
+
+            <div style={{ marginTop: 16, padding: 16, border: `2px dashed ${theme.ashDark}`, borderRadius: 14, textAlign: "center", color: "#aaa", fontSize: 13 }}>
+              <div style={{ fontSize: 28, marginBottom: 6 }}>🔍</div>
+              <div>নতুন পুরোহিত খুঁজুন</div>
+              <button style={{ marginTop: 10, padding: "8px 20px", background: theme.saffron, color: "white", border: "none", borderRadius: 8, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>পুরোহিত খুঁজুন</button>
+            </div>
+
+            <div style={{ marginTop: 20 }} />
+            <SectionTitle icon="⚙️" title="পছন্দ (Preferences)" />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {userData.preferences.map(p => (
+                <span key={p} className="skill-chip" style={{ background: "#E3F2FD", borderColor: "#90CAF9", color: theme.blue }}>✓ {p}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "settings" && (
+          <div>
+            <SectionTitle icon="👤" title="ব্যক্তিগত তথ্য" />
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+              {[
+                { label: "পুরো নাম", value: userData.name, icon: "👤" },
+                { label: "মোবাইল নম্বর", value: userData.phone, icon: "📞" },
+                { label: "ইমেইল", value: userData.email, icon: "✉️" },
+                { label: "ঠিকানা", value: userData.location, icon: "📍" },
+              ].map((f, i) => (
+                <div key={i}>
+                  <label className="input-label">{f.icon} {f.label}</label>
+                  <input className="input-field" defaultValue={f.value} />
+                </div>
+              ))}
+            </div>
+
+            <SectionTitle icon="🔔" title="নোটিফিকেশন সেটিং" />
+            {[
+              { label: "বুকিং কনফার্মেশন SMS", enabled: true },
+              { label: "পূজার আগের দিন রিমাইন্ডার", enabled: true },
+              { label: "অফার ও প্রমোশন", enabled: false },
+              { label: "পুরোহিতের নতুন সেবা", enabled: true },
+            ].map((n, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${theme.ash}` }}>
+                <span style={{ fontSize: 14, color: theme.inkLight }}>{n.label}</span>
+                <div style={{ width: 44, height: 24, borderRadius: 999, background: n.enabled ? theme.saffron : "#DDD", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
+                  <div style={{ position: "absolute", top: 2, left: n.enabled ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "white", transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }} />
+                </div>
+              </div>
+            ))}
+
+            <div style={{ marginTop: 20 }}>
+              <button className="btn-primary">💾 পরিবর্তন সংরক্ষণ করুন</button>
+              <div style={{ height: 10 }} />
+              <button style={{ width: "100%", padding: "12px", background: "#FFEBEE", color: "#C62828", border: "1px solid #FFCDD2", borderRadius: 12, fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>🚪 লগ আউট</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+
+export default function App() {
+  const [role, setRole] = useState("purohit");
+
+  return (
+    <>
+      <style>{globalStyles}</style>
+      <div className="app-root">
+        <div className="floating-om">
+          <span style={{ top: "5%", left: "60%" }}>ॐ</span>
+          <span style={{ top: "50%", left: "-5%" }}>ॐ</span>
+          <span style={{ top: "75%", right: "-2%" }}>ॐ</span>
+        </div>
+
+        <div style={{ maxWidth: 480, margin: "0 auto", padding: "20px 16px 40px", position: "relative", zIndex: 1 }}>
+
+          {/* App Header */}
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <div style={{ fontFamily: "'Tiro Devanagari Sanskrit', serif", fontSize: 28, color: theme.saffron, lineHeight: 1 }}>ॐ</div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 26, color: theme.ink, letterSpacing: "-0.5px" }}>PujaConnect</div>
+            <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>পূজো সেবা ও বুকিং প্ল্যাটফর্ম</div>
+          </div>
+
+          {/* Role Switch */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, color: "#999", textAlign: "center", marginBottom: 8, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600 }}>প্রোফাইল দেখুন</div>
+            <div className="tab-bar">
+              <button className={`tab-btn ${role === "purohit" ? "active" : ""}`} onClick={() => setRole("purohit")}>
+                🙏 পুরোহিত প্রোফাইল
+              </button>
+              <button className={`tab-btn ${role === "user" ? "active" : ""}`} onClick={() => setRole("user")}>
+                👤 ইউজার প্রোফাইল
+              </button>
+            </div>
+          </div>
+
+          {/* Profile Card */}
+          <div className="card">
+            {role === "purohit" ? <PurohitProfile /> : <UserProfile />}
+          </div>
+
+          {/* Footer note */}
+          <div style={{ textAlign: "center", marginTop: 20, fontSize: 11, color: "#ccc" }}>
+            PujaConnect MVP · Phase 1 · React Native উপযোগী UI
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
